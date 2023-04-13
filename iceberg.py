@@ -47,7 +47,8 @@ def organise(text):
     acc = "\nAccuracy: " + str(text['location']['accuracy'])
     place = "\nPlace: " + str(text['location']['address1'])
     since = "\nSince " + str(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(text['location']['since'])))
-    location = name + lat + long + acc + place + since + "```"
+    gmap = "https://maps.google.com/?q=" + str(text['location']['latitude']) + "," + str(text['location']['longitude'])
+    location = name + lat + long + acc + place + since + "``` " +gmap
     return location
 #Call locate.sh with url and auth and return as JSON
 def locate():
