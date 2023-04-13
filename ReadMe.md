@@ -16,6 +16,7 @@ I got the circleID and memberID just using curl manually, I'm sure there are eas
 
 ## Plans
 - [ ] Circle Leaderboard 
+- [ ] Replace Curl command (bug)
 - [ ] Discord users integration
 - [ ] Proper Discord Command Implementation
 - [ ] Docker container
