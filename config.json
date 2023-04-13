@@ -1,0 +1,8 @@
+{
+	"token": "Discord Token",
+    "authToken": "Life360 Token",
+    "username":"Life360 Username",
+    "password":"Life360 Password",
+    "circleID": "Life360 CircleID",
+    "memberID":"Life360 memberID"
+}
