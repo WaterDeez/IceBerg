@@ -3,6 +3,7 @@ import json
 import requests
 import subprocess
 import time
+from organise import *
 
 #Life360 API URLs
 _BASE_URL = 'https://api.life360.com/v3/'
@@ -14,7 +15,6 @@ _CIRCLE_PLACES_URL = _CIRCLE_URL + '/places'
 
 #load JSON config
 config = json.load(open('config.json', 'r'))
-
 
 #get Life360 header auth token
 def auth():
@@ -37,36 +37,28 @@ def auth():
                raise ValueError(err_msg)
        resp = resp.json()
        return resp['access_token']
-#Turn JSON data into readable discord message
-def organise(text):
-    if text is None:
-        return
-    name = str(text['firstName']) + "'s current location is: ```"
-    long = "\nLongitude: " + str(text['location']['longitude'])
-    lat = "\nLatitude: " + str(text['location']['latitude'])
-    acc = "\nAccuracy: " + str(text['location']['accuracy'])
-    place = "\nPlace: " + str(text['location']['address1'])
-    since = "\nSince " + str(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(text['location']['since'])))
-    gmap = "https://maps.google.com/?q=" + str(text['location']['latitude']) + "," + str(text['location']['longitude'])
-    location = name + lat + long + acc + place + since + "``` " +gmap
-    return location
-#Call locate.sh with url and auth and return as JSON
-def locate():
-    link = str(_CIRCLE_URL + config['circleID'] + "/members/" + config['memberID'])
-    data = json.loads(subprocess.run("./locate.sh %s %s" % (str(auth()), link), shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8'))
-    return organise(data)
+
+#Call apicon.sh with url
+def apicon(link):
+    data = subprocess.run("./locate.sh %s %s" % (str(auth()), link), shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
+    return (data)
 
 #Standard DiscordPY setup
 class MyClient(discord.Client):
     async def on_ready(self):
         print(f'Logged on as {self.user}!')
     async def on_message(self, message):
+        if message.content == '/list':
+            print("list called")
+            list = json.loads(str(apicon(str(_CIRCLE_URL + config['circleID']))))
+            await message.channel.send(oragniseUserlist(list))
         if message.content == '/jod':
-            await message.channel.send(locate())
+            await message.channel.send(organiseLocation(apicon(str(_CIRCLE_URL + config['circleID'] + "/members/" + config['memberID']))))
+            print("Jod command called")
 intents = discord.Intents.all()
 intents.message_content = True
 client = MyClient(intents=intents)
-client.run(config['token'])
-
+#client.run(config['token'])
+client.run('NTA3NzU0OTQxNzU1MTYyNjU1.GzOVRK.x5QgWDZgjz35co6TCnd5PtlmgXzf9UtTLMLdj0')
 
 
