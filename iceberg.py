@@ -4,44 +4,17 @@ import requests
 import subprocess
 import time
 from organise import *
-
-#Life360 API URLs
-_BASE_URL = 'https://api.life360.com/v3/'
-_TOKEN_URL = _BASE_URL + 'oauth2/token.json'
-_CIRCLES_URL = 'https://www.life360.com/v3/circles'
-_CIRCLE_URL = _BASE_URL + 'circles/'
-_CIRCLE_MEMBERS_URL = _CIRCLE_URL + '/members'
-_CIRCLE_PLACES_URL = _CIRCLE_URL + '/places'
+from functions import *
+from discord.ext import commands
 
 #load JSON config
 config = json.load(open('config.json', 'r'))
 
-#get Life360 header auth token
-def auth():
-       session = requests.session()
-       data = {
-               'grant_type': 'password',
-               'username': config['username'],
-               'password': config['password'],
-           }    
-       resp = session.post(_TOKEN_URL.format(1), data=data, timeout=None,
-               headers={'Authorization': 'Basic ' + config['authToken']})
-   
-       if not resp.ok:
-               try:
-                   err_msg = json.loads(resp.text)['errorMessage']
-               except:
-                   resp.raise_for_status()
-                   raise ValueError('Unexpected response to {}: {}: {}'.format(
-                       _TOKEN_URL, resp.status_code, resp.text))
-               raise ValueError(err_msg)
-       resp = resp.json()
-       return resp['access_token']
+# IceBerg.py
+# Main python file, calls discord client and other stored functions from commands
+#
 
-#Call apicon.sh with url
-def apicon(link):
-    data = subprocess.run("./locate.sh %s %s" % (str(auth()), link), shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
-    return (data)
+
 
 #Standard DiscordPY setup
 class MyClient(discord.Client):
@@ -49,16 +22,18 @@ class MyClient(discord.Client):
         print(f'Logged on as {self.user}!')
     async def on_message(self, message):
         if message.content == '/list':
-            print("list called")
-            list = json.loads(str(apicon(str(_CIRCLE_URL + config['circleID']))))
-            await message.channel.send(oragniseUserlist(list))
-        if message.content == '/jod':
-            await message.channel.send(organiseLocation(apicon(str(_CIRCLE_URL + config['circleID'] + "/members/" + config['memberID']))))
-            print("Jod command called")
+            await message.channel.send(getUserList())
+        if message.content.startswith('/locateUser'):
+            print("locate user command called")
+            await message.channel.send(embed=getUserLocation(message.content[12:]))
+        if message.content.startswith('/locateID'):
+            print("locate userID command called")
+            await message.channel.send(embed=getUserIDLocation(message.content[10:]))
+        if message.content.startswith('/getID'):
+            print("locate getID command called")
+            await message.channel.send(getID(message.content[7:]))
 intents = discord.Intents.all()
 intents.message_content = True
+intents.members = True
 client = MyClient(intents=intents)
 client.run(config['token'])
-
-
-
